@@ -2,12 +2,20 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  /* font-family: Verdana, Geneva, Tahoma, sans-serif; */
+  font-family: 'Roboto', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+:root {
+  --color: #333;
+  --color-light-grey: #858585;
+  --border: 1px solid #c2c2c2;
 }
 
 header h1 {
   text-align: center;
-  color: #333;
+  color: var(--color);
   margin: 10px 0;
 }
 
@@ -25,12 +33,12 @@ header nav a {
 }
 
 header nav a:not(:last-child) {
-  border-right: 1px solid;
+  border-right: var(--border);
 }
 
 header nav a:hover,
 header nav a:focus,
-header nav a:visited {
+header nav a:target {
   background: chocolate;
 }
 
@@ -41,15 +49,25 @@ table {
   border-spacing: 0;
   width: calc(100% - 20px);
   margin: 20px auto;
-  border: 1px solid;
+  border: var(--border);
   border-width: 1px 0 0 1px;
+}
+
+table thead {
+  background: cadetblue;
+  color: antiquewhite;
+  font-size: 18px
+}
+
+table tbody tr:nth-child(even) {
+  background: #ebebeb;
 }
 
 table td,
 table th {
-  padding: 5px;
+  padding: 10px 5px;
   text-align: center;
-  border: 1px solid;
+  border: var(--border);
   border-width: 0 1px 1px 0;
 }
 
@@ -60,13 +78,63 @@ table th {
 }
 
 .bus {
-  border: 1px solid;
-  flex-basis: 33%;
+  border: var(--border);
+  flex-basis: 49%;
+  padding: 5px;
+  position: relative;
+  height: 64px;
+  line-height: 1.5;
+}
+
+.bus time {
+  font-size: 24px;
+  color: var(--color);
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+}
+
+.bus time::before {
+  font-size: 14px;
+  color: var(--color-light-grey);
+}
+
+.bus:first-of-type time::before { content: "Last" }
+
+.bus:last-of-type time::before { content: "Next" }
+
+.bus b {
+  position: absolute;
+  right: 10px;
+  font-size: 40px;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.bus b::before {
+  content: "рейс";
+  font-size: 10px;
+  color: var(--color-light-grey);
+  font-weight: lighter;
 }
 
 #time {
   text-align: center;
+  display: block;
   margin: 20px auto;
-  font-size: 20px;
+  font-size: 44px;
   color: brown;
+}
+
+@media(max-width: 480px) {
+  table { font-size: 12px }
+}
+
+@media(max-width: 340px) {
+  table { font-size: 10px }
+  table thead { font-size: 14px; color: antiquewhite; }
+  table td,
+  table th {padding: 8px 2px }
 }

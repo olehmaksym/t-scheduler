@@ -1,14 +1,12 @@
-const time = document.getElementById('time');
-let date = new Date();
-
 class Schedule {
-  constructor(interval, startTime, endTime, bus, buses, type) {
+  constructor(interval, startTime, endTime, bus, buses, type, extraSlots = []) {
     this.bus = bus;
     this.buses = buses;
     this.interval = interval; // minutes
     this.startTime = startTime;
     this.endTime = endTime;
     this.type = type;
+    this.extraSlots = extraSlots;
   }
 
   get timeSlots() {
@@ -20,11 +18,45 @@ class Schedule {
 
     while (now <= end) {
       flight = flight < this.buses ? ++flight : 1;
-      timeSlots.push({ time: new Date(now), flight });
+      timeSlots.push({ time: now, flight });
       now = new Date(now).setMinutes(new Date(now).getMinutes() + this.interval);
     }
 
+    if (this.extraSlots.length) {
+      this.extraSlots.forEach(slot => {
+        flight = flight < this.buses ? ++flight : 1;
+        timeSlots.push({ time: new Date().setHours(slot.h, slot.m, 0, 0), flight })
+      })
+    }
+
     return timeSlots;
+  }
+}
+
+const SCHEDULE_TYPE = [
+  [15, { h: 6, m: 55}, { h: 20, m: 40 }, 7, 8, 'workDay', [{ h: 21, m: 0 }, { h: 21, m: 30 }]], // Lviv
+  [15, { h: 6, m: 25}, { h: 20, m: 10 }, 1, 8, 'workDay'], // Stavchany
+  [24, { h: 7, m: 12}, { h: 20, m: 0 }, 4, 5, 'holiday', [{ h: 20, m: 30 }, { h: 21, m: 0 }, { h: 21, m: 30 }]], // Lviv
+  [24, { h: 7, m: 0}, { h: 20, m: 12 }, 1, 5, 'holiday'], // Stavchany
+];
+
+let DATE = new Date();
+let SCHEDULE = null;
+
+function getScheduleType() {
+  const isHoliday = DATE.getDay() === 0;
+
+  console.log('isHoliday', isHoliday, location.hash);
+  if (isHoliday) {
+    switch (location.hash) {
+      case '#lviv': return SCHEDULE_TYPE[2];
+      case '#stavchany': return SCHEDULE_TYPE[3];
+    }
+  } else {
+    switch (location.hash) {
+      case '#lviv': return SCHEDULE_TYPE[0];
+      case '#stavchany': return SCHEDULE_TYPE[1];
+    }
   }
 }
 
@@ -35,15 +67,16 @@ function creteEmptyColumn(q) {
     columns.push('<td></td>');
   }
 
-  console.log('columns', columns);
   return columns;
 }
 
 function toUserTime(date) {
-  return `${date.getHours()}:${date.getMinutes() ? date.getMinutes() : '00' }`
+  const time = new Date(date);
+  return `${time.getHours()}:${time.getMinutes() ? time.getMinutes() : '00' }`
 }
 
-function creteTable(schedule) {
+function creteTable() {
+  const schedule = SCHEDULE;
   const rows = [];
   const slots = schedule.timeSlots;
   const table = document.getElementById('table');
@@ -78,28 +111,20 @@ function creteTable(schedule) {
   table.innerHTML = `<thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody>`;
 }
 
-const SCHEDULE_TYPE = [
-  [15, { h: 6, m: 55}, { h: 21, m: 30 }, 7, 8, 'workDay'], // Lviv
-  [15, { h: 6, m: 25}, { h: 20, m: 10 }, 1, 8, 'workDay'], // Stavchany
-  [24, { h: 7, m: 12}, { h: 21, m: 30 }, 4, 5, 'holiday'], // Lviv
-  [24, { h: 7, m: 0}, { h: 20, m: 12 }, 1, 5, 'holiday'], // Stavchany
-]
+function findBus() {
+  const schedule = SCHEDULE;
+  const lastElm = document.querySelector('.last');
+  const nextElm = document.querySelector('.next');
+  const nextIndex = schedule.timeSlots.findIndex(slot => slot.time > DATE);
+  const last = schedule.timeSlots[nextIndex - 1];
+  const next = schedule.timeSlots[nextIndex];
 
-function getScheduleType() {
-  const isHoliday = date.getDay() === 0;
-
-  console.log('isHoliday', isHoliday, location.hash);
-  if (isHoliday) {
-    switch (location.hash) {
-      case '#lviv': return SCHEDULE_TYPE[2];
-      case '#stavchany': return SCHEDULE_TYPE[3];
-    }
-  } else {
-    switch (location.hash) {
-      case '#lviv': return SCHEDULE_TYPE[0];
-      case '#stavchany': return SCHEDULE_TYPE[1];
-    }
-  }
+  lastElm.innerHTML = `
+    <time>${toUserTime(last.time)}</time>
+    <b>${last.flight}</b>`;
+  nextElm.innerHTML = `
+    <time>${toUserTime(next.time)}</time>
+    <b>${next.flight}</b>`;
 }
 
 function main() {
@@ -107,19 +132,28 @@ function main() {
     location.hash = '#lviv';
   }
 
-  console.log('getScheduleType', getScheduleType());
+  SCHEDULE = new Schedule(...getScheduleType());
 
-  const schedule = new Schedule(...getScheduleType());
+  setInterval(findBus, 60 * 1000);
+  findBus();
+  creteTable();
+}
 
-  creteTable(schedule);
+function changeDestination() {
+  SCHEDULE = new Schedule(...getScheduleType());
+
+  findBus();
+  creteTable()
 }
 
 function updateTime() {
-  date = new Date();
-  time.innerText = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  const time = document.getElementById('time');
+
+  DATE = new Date();
+  time.innerText = `${DATE.toLocaleTimeString()}`;
 }
 
 setInterval(updateTime, 1000);
 
 window.onload = main;
-window.addEventListener("hashchange", main);
+window.addEventListener("hashchange", changeDestination);
