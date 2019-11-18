@@ -48,7 +48,7 @@ header nav a:target {
 table {
   border-spacing: 0;
   width: calc(100% - 20px);
-  margin: 20px auto;
+  margin: 10px auto;
   border: var(--border);
   border-width: 1px 0 0 1px;
 }
@@ -138,3 +138,11 @@ table th {
   table td,
   table th {padding: 8px 2px }
 }
+
+label {
+  margin: 10px 10px 0;
+  display: block;
+  padding: 10px 0;
+}
+
+input[type=checkbox] { transform: scale(1.2) }

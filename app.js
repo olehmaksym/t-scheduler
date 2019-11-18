@@ -42,12 +42,17 @@ const SCHEDULE_TYPE = [
 
 let DATE = new Date();
 let SCHEDULE = null;
+let IS_HOLIDAY = DATE.getDay() === 0 || DATE.getDay() === 6;
+
+document.getElementById("checkbox").checked = IS_HOLIDAY;
+
+function setHoliday(e) {
+  IS_HOLIDAY = e.checked;
+  changeDestination();
+}
 
 function getScheduleType() {
-  const isHoliday = DATE.getDay() === 0;
-
-  console.log('isHoliday', isHoliday, location.hash);
-  if (isHoliday) {
+  if (IS_HOLIDAY) {
     switch (location.hash) {
       case '#lviv': return SCHEDULE_TYPE[2];
       case '#stavchany': return SCHEDULE_TYPE[3];
@@ -116,15 +121,21 @@ function findBus() {
   const lastElm = document.querySelector('.last');
   const nextElm = document.querySelector('.next');
   const nextIndex = schedule.timeSlots.findIndex(slot => slot.time > DATE);
-  const last = schedule.timeSlots[nextIndex - 1];
-  const next = schedule.timeSlots[nextIndex];
 
-  lastElm.innerHTML = `
-    <time>${toUserTime(last.time)}</time>
-    <b>${last.flight}</b>`;
-  nextElm.innerHTML = `
-    <time>${toUserTime(next.time)}</time>
-    <b>${next.flight}</b>`;
+  if (nextIndex !== -1) {
+    const last = schedule.timeSlots[nextIndex - 1];
+    const next = schedule.timeSlots[nextIndex];
+  
+    lastElm.innerHTML = `
+      <time>${toUserTime(last.time)}</time>
+      <b>${last.flight}</b>`;
+    nextElm.innerHTML = `
+      <time>${toUserTime(next.time)}</time>
+      <b>${next.flight}</b>`;
+  } else {
+    lastElm.innerHTML = `<time>00:00</time>`;
+    nextElm.innerHTML = `<time>00:00</time>`;
+  }
 }
 
 function main() {
